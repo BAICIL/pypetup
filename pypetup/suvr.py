@@ -3,7 +3,8 @@ import numpy as np
 import pandas as pd
 import argparse
 import sys
-from FreeSurferColorLUT import FreeSurferColorLUT, ROIs
+import os
+from .FreeSurferColorLUT import FreeSurferColorLUT, ROIs
 
 
 def extract_roi_data(label_file, pet_image_file, label_dict):
@@ -75,16 +76,21 @@ def extract_roi_data(label_file, pet_image_file, label_dict):
     return df
 
 
-def calculate_suvr(df, output_file):
+def calculate_suvr(df, output_dir):
     """
     Calculate SUVR for ROIs in a PET image and save the result.
 
     Parameters:
     df (pd.DataFrame): DataFrame containing ROI data.
-    output_file (str): Path to save the output CSV file.
+    output_dir (str): Path of direcotry to save the output CSV file.
+    Returns:
+        ref_value (float): reference value of the total cerebellum.
     """
     roi_name_1 = 'Left-Cerebellum-Cortex'
     roi_name_2 = 'Right-Cerebellum-Cortex'
+    output_filename = 'SUVRLR.csv'
+    output_file = os.path.join(output_dir, output_filename)
+    
     # Get ROI Label IDs from the names
     try:
         roi_label_1 = df[df['Label Name'] == roi_name_1]['ROI Label ID'].values[0]
@@ -104,34 +110,34 @@ def calculate_suvr(df, output_file):
     voxels_2 = roi_2_row['Number of Voxels'].values[0]
 
     # Compute weighted mean
-    weighted_mean = (mean_1 * voxels_1 + mean_2 * voxels_2) / (voxels_1 + voxels_2)
+    ref_value = (mean_1 * voxels_1 + mean_2 * voxels_2) / (voxels_1 + voxels_2)
 
     # Create a new column 'SUVR' by dividing 'Mean PET Value' by the weighted mean
-    df['SUVR'] = df['Mean PET Value'] / weighted_mean
-
-    # Display the updated DataFrame
-    print(df)
+    df['SUVR'] = df['Mean PET Value'] / ref_value
 
     # Save the updated DataFrame to a CSV file if needed
     try:
         df.to_csv(output_file, index=False)
-        print(f"Output saved to {output_file}")
     except Exception as e:
         print(f"Error saving output file: {e}")
         sys.exit(1)
+    return ref_value
 
-def compute_weighted_mean_for_roi_list(df, roi_names_list, overall_weighted_mean):
+def compute_weighted_mean_for_roi_list(df, ref_value):
     """
     Compute the weighted mean for a list of ROIs and calculate SUVR using a provided weighted mean.
 
-    Parameters:
-    df (pd.DataFrame): DataFrame containing ROI data.
-    roi_names_list (list of str): List of ROI names to compute weighted mean.
-    overall_weighted_mean (float): The weighted mean value to use for SUVR calculation.
+    Args:
+        df (pd.DataFrame): DataFrame containing ROI data.
+        ref_value (float): The weighted mean value to use for SUVR calculation.
+        output_dir (str): Path of direcotry to save the output CSV file.
 
     Returns:
-    pd.DataFrame: DataFrame containing the label names from the list, weighted average, number of voxels, and SUVRs.
+        None
     """
+    output_filename = 'SUVRLR.csv'
+    output_file = os.path.join(output_dir, output_filename)
+    roi_names_list = ROIs
     # Filter ROI data based on matching strings in Label Name
     roi_data = df[df['Label Name'].str.contains('|'.join(roi_names_list), case=False, na=False)]
 
@@ -147,54 +153,52 @@ def compute_weighted_mean_for_roi_list(df, roi_names_list, overall_weighted_mean
             total_voxels += voxel_count
     
     # Compute SUVR for each ROI using the provided overall weighted mean
-    roi_data['SUVR'] = roi_data['Mean PET Value'] / overall_weighted_mean
+    roi_data['SUVR'] = roi_data['Mean PET Value'] / ref_value
 
     # Create a new DataFrame for the results
     result_df = roi_data[['Label Name', 'Mean PET Value', 'Number of Voxels', 'SUVR']]
     result_df.rename(columns={'Mean PET Value': 'Weighted Average'}, inplace=True)
+    
+    # Save the updated DataFrame to a CSV file if needed
+    try:
+        result_df.to_csv(output_file, index=False)
+    except Exception as e:
+        print(f"Error saving output file: {e}")
+        sys.exit(1)
+        
+    return None
 
-    return result_df
-
-def report_suvr(label_file, pet_image_file, label_dict, roi_name_1, roi_name_2, output_file, roi_names_list):
+def report_suvr(label_file, pet_image_file, output_file):
     """
     Main function to extract ROI data and calculate SUVR.
 
-    Parameters:
-    label_file (str): Path to the label NIfTI file.
-    pet_image_file (str): Path to the PET image NIfTI file.
-    label_dict (dict): Dictionary containing label IDs and corresponding label names.
-    roi_name_1 (str): Name of the first ROI for weighted mean calculation.
-    roi_name_2 (str): Name of the second ROI for weighted mean calculation.
-    output_file (str): Path to save the output CSV file.
-    roi_names_list (list of str): List of ROI names to compute weighted mean.
-    """
-    df = extract_roi_data(label_file, pet_image_file, label_dict)
-    calculate_suvr(df, roi_name_1, roi_name_2, output_file)
-    
-    # Compute weighted means for ROI list
-    result_df = compute_weighted_mean_for_roi_list(df, roi_names_list)
-    print("\nWeighted Mean and SUVRs for Specified ROI List:")
-    print(result_df)
-
-
-def parse_args():
-    """
-    Parse command-line arguments.
+    Args:
+        label_file (str): Path to the label NIfTI file.
+        pet_image_file (str): Path to the PET image NIfTI file.
+        output_file (str): Path to save the output CSV file.
 
     Returns:
-    argparse.Namespace: Parsed arguments.
+        None
+    """
+    df = extract_roi_data(label_file, pet_image_file)
+    ref_value = calculate_suvr(df, output_dir)
+    
+    # Compute weighted means for ROI list
+    result_df = compute_weighted_mean_for_roi_list(df, ref_value, output_dir)
+
+def main():
+    """
+    Main function that parses the input arguments and call the reporting function.
     """
     parser = argparse.ArgumentParser(description="Calculate SUVR for ROIs in a PET image based on label files.")
     parser.add_argument('label_file', type=str, help="Path to the label NIfTI file.")
     parser.add_argument('pet_image_file', type=str, help="Path to the PET image NIfTI file.")
-    parser.add_argument('label_dict_file', type=str, help="Path to the Python file containing the label dictionary.")
-    parser.add_argument('roi_name_1', type=str, help="Name of the first ROI for weighted mean calculation.")
-    parser.add_argument('roi_name_2', type=str, help="Name of the second ROI for weighted mean calculation.")
-    parser.add_argument('output_file', type=str, help="Path to save the output CSV file.")
-    parser.add_argument('--roi_names_list', nargs='+', type=str, help="List of ROI names to compute weighted mean.")
-    return parser.parse_args()
+    parser.add_argument('output_dir', type=str, help="Path of the directory to save the output CSV files.")
+
+    report_suvr(args.label_file, args.pet_image_file, args.output_dir)
+
+    
+    
 
 if __name__ == "__main__":
-    args = parse_args()
-    label_dict = load_label_dict(args.label_dict_file)
-    main(args.label_file, args.pet_image_file, label_dict, args.roi_name_1, args.roi_name_2, args.output_file, args.roi_names_list)
+    main()
