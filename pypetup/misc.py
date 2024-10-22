@@ -5,6 +5,7 @@ import subprocess
 import numpy as np
 import time
 import json
+from scipy.ndimage import gaussian_filter
 
 def check_file_exists(filepath):
     """
@@ -70,11 +71,17 @@ def convert_3d_atlas_to_4d_binary_labels(atlas_path, output_4d_path):
     """
     start_time = time.time()
     nib.openers.Opener.default_compresslevel = 9
-    print("Converting the 3D wmparc label file to 4D binary masks file")
     
     # Load the 3D atlas NIfTI file
-    atlas_img = nib.load(atlas_path)
-    atlas_data = atlas_img.get_fdata()
+    try:
+        atlas_img = nib.load(atlas_path)
+        if len(atlas_img.shape) != 3:
+            raise ValueError(f"Invalid image shape: {atlas_img.shape}.\nOnly 3D atlas images are supported.")
+        atlas_data = atlas_img.get_fdata()
+    except nib.filebasedimages.ImageFileError:
+        raise ValueError(f"Error loading NIFTI file: {atlas_path}")
+    except Exception as e:
+        raise RuntimeError(f"An unexpected error occurred: {e}")
     
     # Get unique ROI labels from the atlas (excluding the background label, assumed to be 0)
     roi_labels = np.unique(atlas_data)
@@ -94,8 +101,11 @@ def convert_3d_atlas_to_4d_binary_labels(atlas_path, output_4d_path):
     # Create a new NIfTI image for the 4D data
     binary_4d_img = nib.Nifti1Image(binary_4d_data, affine=atlas_img.affine, header=atlas_img.header)
     
-    # Save the 4D NIfTI image
-    nib.save(binary_4d_img, output_4d_path)
+    # Save labeled image
+    try:
+        nib.save(binary_4d_img, output_4d_path)
+    except IOError:
+        raise IOError(f"Could not save PET sum file {output_4d_path}")
     
     end_time = time.time()
     print(f"Conversion complete. Saved as {output_4d_path}")
@@ -278,3 +288,49 @@ def load_json(json_file):
             raise ValueError(f"Error parsing the JSON file: {e}")
     
     return data
+
+def filter_image(image_4d, output_4d, filter_size=[8, 8, 8]):
+    """
+    This function filters the image so that the effect smoothing is 8x8x8 mm3. This is done to 
+    harmonize the data across different scanners. 
+
+    Raises:
+        fe: FileNotFound Error
+        ie: ImageFileError from nibabel exceptions.
+        e: Other Exceptions
+        ValueError: Error in input values
+    """
+    if check_file_exists(image_4d):
+        raise FileNotFoundError(f"The input file {image_4d} not found.")
+    
+    try:
+        img = nib.load(image_4d)
+        data = img.get_fdata()
+    except nib.filebasedimages.ImageFileError as ie:
+        raise ie
+    except Exception as e:
+        raise e    
+    fwhm = np.array(filter_size)
+    sigma = fwhm / 2.355
+    voxel_size = np.abs(np.diag(img.affine))[:3]
+    sigma_voxel = sigma / voxel_size
+    try:
+        if data.ndim == 3:
+            smoothed_data = gaussian_filter(data, sigma=sigma_voxel)
+        elif data.ndim == 4:
+            smoothed_data = np.zeros_like(data)
+            for t in range (data.shape[3]):
+                smoothed_data[:, :, :, t] = gaussian_filter(data[:, :, :, t], sigma=sigma_voxel)
+        else:
+            raise ValueError("Input NIFTI image must be 3D or 4D.")
+    except Exception as e:
+        raise e
+    try:
+        smoothed_img = nib.Nifti1Image(smoothed_data, img.affine, img.header)
+        nib.save(smoothed_img, output_4d)
+    except nib.filebasedimages.ImageFileError as ie:
+        raise ie
+    except Exception as e:
+        raise e
+    
+    return None
