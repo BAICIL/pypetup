@@ -1489,7 +1489,7 @@ FreeSurferColorLUT = {
 
 ROIs = ['Cerebellum-White-Matter',
 'Cerebellum-Cortex',
-'Thalamus-Proper',
+'Thalamus',
 'Caudate',
 'Putamen',
 'Pallidum',
