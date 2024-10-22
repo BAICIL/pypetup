@@ -34,7 +34,7 @@ def convert_mgz_to_nii(T1_mgz, wmparc_mgz, output_dir):
     # Generate the output file paths
     T1_nii = os.path.join(output_dir, 'T1.nii.gz')
     wmparc_nii = os.path.join(output_dir, 'wmparc.nii.gz')
-    head_mask = os.path.join(output_dir, 'HeadMask.nii.gz')
+    head_mask = os.path.join(output_dir, 'headmask.nii.gz')
 
     # Construct FreeSurfer mri_convert commands
     command_T1 = ['mri_convert', T1_mgz, T1_nii, '--in_orientation', 'LIA', '--out_orientation', 'LAS']
