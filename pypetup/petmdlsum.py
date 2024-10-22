@@ -75,7 +75,7 @@ def model_sum_pet(input_file, start_frame, end_frame, half_life, start_times, du
             print(f"An error occurred while copying the file: {e}")
         return output_file
     
-    if start_frame < 1 or end_frame > n_frames:
+    if start_frame < 0 or end_frame > n_frames - 1:
         raise ValueError(f"Invalid frame range. Total frames: {n_frames}")
     
     # Initialize variables
