@@ -4,7 +4,7 @@ import pandas as pd
 import argparse
 import sys
 import os
-from FreeSurferColorLUT import FreeSurferColorLUT, ROIs
+from .FreeSurferColorLUT import FreeSurferColorLUT, ROIs
 
 
 def extract_roi_data(label_file, pet_image_file):
