@@ -81,7 +81,7 @@ def coregister_pet_to_t1(pet_file, t1_file, output_dir=None):
     # Apply transformation to the original 4D PET image
     print("Applying transformation to PET image...")
     try:
-        applyxfm(src=pet_file, ref=t1_file, mat=matrix_file, out=pet_coreg_file, interp='trilinear')
+        applyxfm(src=pet_file, ref=t1_file, mat=matrix_file, out=pet_coreg_file, interp='spline')
     except Exception as e:
         raise RuntimeError(f"An unexpected error occurred during APPLYXFM: {e}")
     
