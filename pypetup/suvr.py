@@ -4,6 +4,7 @@ import pandas as pd
 import argparse
 import sys
 import os
+from .misc import write_dataframe_to_csv
 from .FreeSurferColorLUT import FreeSurferColorLUT, ROIs
 
 
@@ -11,13 +12,12 @@ def extract_roi_data(label_file, pet_image_file):
     """
     Extract ROI data from the label and PET image files.
 
-    Parameters:
-    label_file (str): Path to the label NIfTI file.
-    pet_image_file (str): Path to the PET image NIfTI file.
-    label_dict (dict): Dictionary containing label IDs and corresponding label names.
+    Args:
+        label_file (str): Path to the label NIfTI file.
+        pet_image_file (str): Path to the PET image NIfTI file.
 
     Returns:
-    pd.DataFrame: DataFrame containing ROI Label ID, Label Name, Mean PET Value, and Number of Voxels.
+        pd.DataFrame: DataFrame containing ROI Label ID, Label Name, Mean PET Value, and Number of Voxels.
     """
     try:
         # Load images using nibabel
@@ -77,20 +77,19 @@ def extract_roi_data(label_file, pet_image_file):
     return df
 
 
-def calculate_suvr(df, output_dir):
+def calculate_suvrlr(df):
     """
     Calculate SUVR for ROIs in a PET image and save the result.
 
-    Parameters:
-    df (pd.DataFrame): DataFrame containing ROI data.
-    output_dir (str): Path of direcotry to save the output CSV file.
+    Args:
+        df (pd.DataFrame): DataFrame containing ROI data.
+    
     Returns:
+        pd.DataFrame: DataFrame containing ROI Label ID, Label Name, Mean PET Value, Number of Voxels and SUVRLR.
         ref_value (float): reference value of the total cerebellum.
     """
     roi_name_1 = 'Left-Cerebellum-Cortex'
     roi_name_2 = 'Right-Cerebellum-Cortex'
-    output_filename = 'SUVRLR.csv'
-    output_file = os.path.join(output_dir, output_filename)
     
     # Get ROI Label IDs from the names
     try:
@@ -116,28 +115,20 @@ def calculate_suvr(df, output_dir):
     # Create a new column 'SUVR' by dividing 'Mean PET Value' by the weighted mean
     df['SUVR'] = df['Mean Value'] / ref_value
 
-    # Save the updated DataFrame to a CSV file if needed
-    try:
-        df.to_csv(output_file, index=False)
-    except Exception as e:
-        print(f"Error saving output file: {e}")
-        sys.exit(1)
-    return ref_value
+    return df, ref_value
 
-def compute_weighted_mean_for_roi_list(df, ref_value, output_dir):
+def compute_suvr(df, ref_value):
     """
     Compute the weighted mean for a list of ROIs and calculate SUVR using a provided weighted mean.
 
-    Parameters:
-    df (pd.DataFrame): DataFrame containing ROI data.
-    ref_value (float): Weighted average value for cerebellum reference region.
-    output_dir (str): Path of the directory to store the csv file.
+    Args:
+        df (pd.DataFrame): DataFrame containing ROI data.
+        ref_value (float): Weighted average value for cerebellum reference region.
 
     Returns:
-    pd.DataFrame: DataFrame containing the label names from the list, weighted average, number of voxels, and SUVRs.
+        pd.DataFrame: DataFrame containing the label names from the list, weighted average, number of voxels, and SUVR.
     """
-    output_filename = 'SUVR.csv'
-    output_file = os.path.join(output_dir, output_filename)
+
     roi_names_list = ROIs
 
     if not isinstance(roi_names_list, list):
@@ -180,17 +171,10 @@ def compute_weighted_mean_for_roi_list(df, ref_value, output_dir):
         'NVoxels': combined_num_voxels,
         'SUVR': combined_suvrs
     })
+    
+    return result_df
 
-    # Save the updated DataFrame to a CSV file if needed
-    try:
-        result_df.to_csv(output_file, index=False)
-    except Exception as e:
-        print(f"Error saving output file: {e}")
-        sys.exit(1)
-
-    return None
-
-def report_suvr(label_file, pet_image_file, output_dir):
+def report_suvr(label_file, pet_image_file, output_dir=None, rsf_flag=False):
     """
     Main function to extract ROI data and calculate SUVR.
 
@@ -202,20 +186,32 @@ def report_suvr(label_file, pet_image_file, output_dir):
     Returns:
         None
     """
-    df = extract_roi_data(label_file, pet_image_file)
-    ref_value = calculate_suvr(df, output_dir)
+    if output_dir is None:
+        output_dir = os.path.dirname(label_file)
+
     
-    # Compute weighted means for ROI list
-    compute_weighted_mean_for_roi_list(df, ref_value, output_dir)
+    suvrlr_file = os.path.join(output_dir, 'SUVRLR.csv')
+    suvr_file = os.path.join(output_dir, 'SUVR.csv')
+
+    # Extract Mean Activity Data
+    df = extract_roi_data(label_file, pet_image_file)
+    # Compute SUVRLR
+    suvrlr, ref_value = calculate_suvrlr(df, output_dir)
+    # Compute SUVR
+    suvr = compute_suvr(df, ref_value)
+    # Write output files
+    write_dataframe_to_csv(suvrlr, suvrlr_file)
+    write_dataframe_to_csv(suvr, suvr_file)
 
 def main():
     """
     Main function that parses the input arguments and call the reporting function.
     """
     parser = argparse.ArgumentParser(description="Calculate SUVR for ROIs in a PET image based on label files.")
-    parser.add_argument('label_file', type=str, help="Path to the label NIfTI file.")
-    parser.add_argument('pet_image_file', type=str, help="Path to the PET image NIfTI file.")
-    parser.add_argument('output_dir', type=str, help="Path of the directory to save the output CSV files.")
+    parser.add_argument('--label_file', type=str, required=True, help="Path to the label NIfTI file.")
+    parser.add_argument('--pet_image_file', type=str,required=True, help="Path to the PET image NIfTI file.")
+    parser.add_argument('--output_dir', type=str, default=None, required=False, help="Path of the directory to save the output CSV files.")
+    
     args = parser.parse_args()
     report_suvr(args.label_file, args.pet_image_file, args.output_dir)
 
