@@ -117,7 +117,7 @@ def calculate_suvrlr(df):
 
     return df, ref_value
 
-def compute_suvr(df, ref_value):
+def calculate_suvr(df, ref_value):
     """
     Compute the weighted mean for a list of ROIs and calculate SUVR using a provided weighted mean.
 
@@ -198,7 +198,7 @@ def report_suvr(label_file, pet_image_file, output_dir=None, rsf_flag=False):
     # Compute SUVRLR
     suvrlr, ref_value = calculate_suvrlr(df, output_dir)
     # Compute SUVR
-    suvr = compute_suvr(df, ref_value)
+    suvr = calculate_suvr(df, ref_value)
     # Write output files
     write_dataframe_to_csv(suvrlr, suvrlr_file)
     write_dataframe_to_csv(suvr, suvr_file)

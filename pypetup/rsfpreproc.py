@@ -177,7 +177,6 @@ def prepare_for_rsf(headmask_nifti, wmparc_nifti=None, sumall2t1_nifti=None):
     rsfmask = os.path.join(output_dir, "RSFMask.nii.gz")
     rsfmask4d = os.path.join(output_dir,"RSFMask_4D.nii.gz")
     rsfmask4d_smth8 = os.path.join(output_dir,"RSFMask_4D_g8.nii.gz")
-    rsfmat_csv = os.path.join(output_dir,"rsfmat.txt")
 
     # Convert wmparc to bin
     try:
