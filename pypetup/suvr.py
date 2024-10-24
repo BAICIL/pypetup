@@ -196,7 +196,7 @@ def report_suvr(label_file, pet_image_file, output_dir=None, rsf_flag=False):
     # Extract Mean Activity Data
     df = extract_roi_data(label_file, pet_image_file)
     # Compute SUVRLR
-    suvrlr, ref_value = calculate_suvrlr(df, output_dir)
+    suvrlr, ref_value = calculate_suvrlr(df)
     # Compute SUVR
     suvr = calculate_suvr(df, ref_value)
     # Write output files
