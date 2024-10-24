@@ -94,10 +94,6 @@ def convert_3d_atlas_to_4d_binary_labels(atlas_path, output_4d_path):
     # Vectorized operation to create binary label maps for each ROI
     for i, label in enumerate(roi_labels):
         binary_4d_data[..., i] = (atlas_data == label)
-        print(i, end=' ')
-
-    print('')
-    
     # Create a new NIfTI image for the 4D data
     binary_4d_img = nib.Nifti1Image(binary_4d_data, affine=atlas_img.affine, header=atlas_img.header)
     
@@ -300,7 +296,7 @@ def filter_image(image_4d, output_4d, filter_size=[8, 8, 8]):
         e: Other Exceptions
         ValueError: Error in input values
     """
-    if check_file_exists(image_4d):
+    if not check_file_exists(image_4d):
         raise FileNotFoundError(f"The input file {image_4d} not found.")
     
     try:
@@ -333,4 +329,24 @@ def filter_image(image_4d, output_4d, filter_size=[8, 8, 8]):
     except Exception as e:
         raise e
     
+    return None
+
+
+def write_dataframe_to_csv(df, output_file):
+    """_summary_
+
+    Args:
+        df (pandas.DataFrame): Pandas data frame to write to file.
+        output_file (str): Path with file name to write the data frame to.
+
+    Raises:
+        IOError: Error writing file to disk
+
+    Returns:
+        None
+    """
+    try:
+        df.to_csv(output_file, index=False)
+    except Exception as e:
+        raise IOError(f"Error saving output file: {e}")
     return None
