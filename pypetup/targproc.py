@@ -1,16 +1,18 @@
-import os
 import argparse
-from .misc import run_command, check_file_exists, check_freesurfer_installation
+import os
+
+from .misc import check_file_exists, check_freesurfer_installation, run_command
+
 
 def convert_mgz_to_nii(T1_mgz, wmparc_mgz, output_dir):
     """
     Converts T1.mgz and wmparc.mgz files to .nii format using FreeSurfer's `mri_convert` command.
-    
+
     Args:
         T1_mgz (str): Path to the T1.mgz file.
         wmparc_mgz (str): Path to the wmparc.mgz file.
         output_dir (str): Path to the output directory where .nii files will be saved.
-    
+
     Raises:
         FileNotFoundError: If T1.mgz or wmparc.mgz is not found.
         OSError: If there is an issue creating the output directory.
@@ -32,14 +34,39 @@ def convert_mgz_to_nii(T1_mgz, wmparc_mgz, output_dir):
         raise RuntimeError(f"Failed not create output directory {output_dir}.\n{e}")
 
     # Generate the output file paths
-    T1_nii = os.path.join(output_dir, 'T1.nii.gz')
-    wmparc_nii = os.path.join(output_dir, 'wmparc.nii.gz')
-    head_mask = os.path.join(output_dir, 'headmask.nii.gz')
+    T1_nii = os.path.join(output_dir, "T1.nii.gz")
+    wmparc_nii = os.path.join(output_dir, "wmparc.nii.gz")
+    head_mask = os.path.join(output_dir, "headmask.nii.gz")
 
     # Construct FreeSurfer mri_convert commands
-    command_T1 = ['mri_convert', T1_mgz, T1_nii, '--in_orientation', 'LIA', '--out_orientation', 'LAS']
-    command_wmparc = ['mri_convert', wmparc_mgz, wmparc_nii, '--in_orientation', 'LIA', '--out_orientation', 'LAS']
-    command_headmask = ['mri_seghead', '--invol', T1_nii, '--outvol', head_mask, '--thresh', '20', '--fill-holes-islands']
+    command_T1 = [
+        "mri_convert",
+        T1_mgz,
+        T1_nii,
+        "--in_orientation",
+        "LIA",
+        "--out_orientation",
+        "LAS",
+    ]
+    command_wmparc = [
+        "mri_convert",
+        wmparc_mgz,
+        wmparc_nii,
+        "--in_orientation",
+        "LIA",
+        "--out_orientation",
+        "LAS",
+    ]
+    command_headmask = [
+        "mri_seghead",
+        "--invol",
+        T1_nii,
+        "--outvol",
+        head_mask,
+        "--thresh",
+        "20",
+        "--fill-holes-islands",
+    ]
 
     # Execute the conversion commands
     print(f"Converting {T1_mgz} to {T1_nii}...")
@@ -56,10 +83,19 @@ def convert_mgz_to_nii(T1_mgz, wmparc_mgz, output_dir):
 
 if __name__ == "__main__":
     # Set up argument parsing
-    parser = argparse.ArgumentParser(description="Convert T1.mgz and wmparc.mgz to NIfTI format and generate head mask using FreeSurfer.")
-    parser.add_argument('--t1', type=str, help="Path to the T1.mgz file", required=True)
-    parser.add_argument('--wmparc', type=str, help="Path to the wmparc.mgz file", required=True)
-    parser.add_argument('--output_dir', type=str, help="Path to the output directory where NIfTI files will be saved", required=True)
+    parser = argparse.ArgumentParser(
+        description="Convert T1.mgz and wmparc.mgz to NIfTI format and generate head mask using FreeSurfer."
+    )
+    parser.add_argument("--t1", type=str, help="Path to the T1.mgz file", required=True)
+    parser.add_argument(
+        "--wmparc", type=str, help="Path to the wmparc.mgz file", required=True
+    )
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        help="Path to the output directory where NIfTI files will be saved",
+        required=True,
+    )
 
     # Parse arguments
     args = parser.parse_args()

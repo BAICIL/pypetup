@@ -1,9 +1,17 @@
-import os
 import argparse
+import os
+
 import nibabel as nib
-import numpy as np 
+import numpy as np
 from fsl.wrappers import fslmaths
-from .misc import check_file_exists, check_fsl_installation, convert_3d_atlas_to_4d_binary_labels, filter_image
+
+from .misc import (
+    check_file_exists,
+    check_fsl_installation,
+    convert_3d_atlas_to_4d_binary_labels,
+    filter_image,
+)
+
 
 def convert_mask_to_label(mask_nifti_file, block_size=64, start_label=20001):
     """
@@ -20,7 +28,7 @@ def convert_mask_to_label(mask_nifti_file, block_size=64, start_label=20001):
     # check if input files exist
     if not check_file_exists(mask_nifti_file):
         raise FileNotFoundError(f"Input mask file {mask_nifti_file} not found.")
-    
+
     # get output file names and paths
     output_dir = os.path.dirname(mask_nifti_file)
     labeled_file = os.path.join(output_dir, "labeled_headmask_petfov.nii.gz")
@@ -29,7 +37,9 @@ def convert_mask_to_label(mask_nifti_file, block_size=64, start_label=20001):
     try:
         mask_nifti = nib.load(mask_nifti_file)
         if len(mask_nifti.shape) != 3:
-            raise ValueError(f"Invalid image shape: {mask_nifti.shape}.\nOnly 3D mask images are supported.")
+            raise ValueError(
+                f"Invalid image shape: {mask_nifti.shape}.\nOnly 3D mask images are supported."
+            )
         mask = mask_nifti.get_fdata()
     except nib.filebasedimages.ImageFileError:
         raise ValueError(f"Error loading NIFTI file: {mask_nifti_file}")
@@ -75,6 +85,7 @@ def convert_mask_to_label(mask_nifti_file, block_size=64, start_label=20001):
 
     return labeled_file
 
+
 def generate_rsfmat(image_path, label_path, output_dir=None):
     """
     Extract mean values from each label for each 3D frame in a 4D image and save as an MxN matrix.
@@ -91,7 +102,7 @@ def generate_rsfmat(image_path, label_path, output_dir=None):
     if output_dir is None:
         output_dir = os.path.dirname(image_path)
     output_file = os.path.join(output_dir, "rsfmat.txt")
-    
+
     try:
         # Load the 4D image and the 3D label file
         image_4d = nib.load(image_path)
@@ -109,10 +120,10 @@ def generate_rsfmat(image_path, label_path, output_dir=None):
         label_data = label_3d.get_fdata()
     except Exception as e:
         raise e
-    
+
     # Get the unique labels in the atlas
     unique_labels = np.unique(label_data)
-    unique_labels = unique_labels[unique_labels != 0] # Exclude the background label
+    unique_labels = unique_labels[unique_labels != 0]  # Exclude the background label
 
     # Extract mean time series for each ROI
     mean_values = []
@@ -120,13 +131,14 @@ def generate_rsfmat(image_path, label_path, output_dir=None):
         roi_mask = label_data == label
         roi_values = image_data[roi_mask]
         mean_values.append(np.mean(roi_values, axis=0))
-    # transposing mean_values to correctly store the rsfmat    
+    # transposing mean_values to correctly store the rsfmat
     mean_values_t = np.array(mean_values).T
 
     # Save the rsfmat to a text file
-    np.savetxt(output_file, mean_values_t, delimiter='\t')
-    
+    np.savetxt(output_file, mean_values_t, delimiter="\t")
+
     return None
+
 
 def prepare_for_rsf(headmask_nifti, wmparc_nifti=None, sumall2t1_nifti=None):
     """
@@ -163,48 +175,57 @@ def prepare_for_rsf(headmask_nifti, wmparc_nifti=None, sumall2t1_nifti=None):
     # check if input files exist
     if not check_file_exists(headmask_nifti):
         raise FileNotFoundError(f"Input mask file {headmask_nifti} not found.")
-    
+
     if not check_file_exists(wmparc_nifti):
         raise FileNotFoundError(f"Input mask file {wmparc_nifti} not found.")
-    
+
     if not check_file_exists(sumall2t1_nifti):
         raise FileNotFoundError(f"Input mask file {sumall2t1_nifti} not found.")
-    
+
     # Create output files.
     wmparc_bin = os.path.join(output_dir, "wmparc_bin.nii.gz")
     pet_fov = os.path.join(output_dir, "petfov.nii.gz")
     head_petfov = os.path.join(output_dir, "headmask_petfov.nii.gz")
     rsfmask = os.path.join(output_dir, "RSFMask.nii.gz")
-    rsfmask4d = os.path.join(output_dir,"RSFMask_4D.nii.gz")
-    rsfmask4d_smth8 = os.path.join(output_dir,"RSFMask_4D_g8.nii.gz")
+    rsfmask4d = os.path.join(output_dir, "RSFMask_4D.nii.gz")
+    rsfmask4d_smth8 = os.path.join(output_dir, "RSFMask_4D_g8.nii.gz")
 
     # Convert wmparc to bin
     try:
-        _ = fslmaths(wmparc_nifti).bin().run(wmparc_bin, odt='short')
+        _ = fslmaths(wmparc_nifti).bin().run(wmparc_bin, odt="short")
     except Exception as e:
-        raise RuntimeError(f"Encounted an unexpected error wmparc to bin conversion: {e}")
-    
+        raise RuntimeError(
+            f"Encounted an unexpected error wmparc to bin conversion: {e}"
+        )
+
     # Create pet fov
     try:
-        _ = fslmaths(sumall2t1_nifti).bin().run(pet_fov, odt='short') 
+        _ = fslmaths(sumall2t1_nifti).bin().run(pet_fov, odt="short")
     except Exception as e:
         raise RuntimeError(f"Encounted an unexpected error PET FOV conversion: {e}")
-    
+
     # Create headmask in pet fov space
     try:
-        _ = fslmaths(headmask_nifti).sub(wmparc_bin).mul(pet_fov).run(head_petfov, odt='int')
+        _ = (
+            fslmaths(headmask_nifti)
+            .sub(wmparc_bin)
+            .mul(pet_fov)
+            .run(head_petfov, odt="int")
+        )
     except Exception as e:
-        raise RuntimeError(f"Encounted an unexpected error creating headmask in PET FOV: {e}")
-    
-    # Convert head mask in pet fov to labeled image. 
+        raise RuntimeError(
+            f"Encounted an unexpected error creating headmask in PET FOV: {e}"
+        )
+
+    # Convert head mask in pet fov to labeled image.
     labeled_file = convert_mask_to_label(head_petfov)
 
-    # Create RSF Mask 
+    # Create RSF Mask
     try:
-        _ = fslmaths(labeled_file).add(wmparc_nifti).run(rsfmask, odt='int')
+        _ = fslmaths(labeled_file).add(wmparc_nifti).run(rsfmask, odt="int")
     except Exception as e:
         raise RuntimeError(f"Encounted an unexpected error creating RSF Mask: {e}")
-    
+
     # Convert 3d RSF label Mask to 4d binary masks
     convert_3d_atlas_to_4d_binary_labels(rsfmask, rsfmask4d)
 
@@ -216,15 +237,31 @@ def prepare_for_rsf(headmask_nifti, wmparc_nifti=None, sumall2t1_nifti=None):
 
     return None
 
+
 def main():
-    parser = argparse.ArgumentParser(description='Prepare for RSF correction.')
-    parser.add_argument('--headmask', type=str, help='Input Head Mask (nii.gz format).', required=True)
-    parser.add_argument('--wmparc', type=str, default=None, help='Input WMPARC file (nii.gz format, optional).', required=False)
-    parser.add_argument('--sumall_t1', type=str, default=None, help='Path to the sumall to T1 (nii.gz format, optional).', required=False)
+    parser = argparse.ArgumentParser(description="Prepare for RSF correction.")
+    parser.add_argument(
+        "--headmask", type=str, help="Input Head Mask (nii.gz format).", required=True
+    )
+    parser.add_argument(
+        "--wmparc",
+        type=str,
+        default=None,
+        help="Input WMPARC file (nii.gz format, optional).",
+        required=False,
+    )
+    parser.add_argument(
+        "--sumall_t1",
+        type=str,
+        default=None,
+        help="Path to the sumall to T1 (nii.gz format, optional).",
+        required=False,
+    )
     args = parser.parse_args()
 
     prepare_for_rsf(args.headmask, args.wmparc, args.sumall_t1)
     print("Prepare for RSF correction Done.")
+
 
 if __name__ == "__main__":
     main()

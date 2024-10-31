@@ -1,9 +1,11 @@
-import os
 import argparse
+import os
+
 import numpy as np
 import pandas as pd
-from .suvr import extract_roi_data, calculate_suvrlr, calculate_suvr
+
 from .misc import write_dataframe_to_csv
+from .suvr import calculate_suvr, calculate_suvrlr, extract_roi_data
 
 '''def rsfpvcv1(rsfmat, roimean, iters):
     """
@@ -31,7 +33,8 @@ from .misc import write_dataframe_to_csv
     return m
 '''
 
-def rsfpvc(rsfmat, roimean, iters = 8):
+
+def rsfpvc(rsfmat, roimean, iters=8):
     """
     Performs the actual RSF PVC correction
     Args:
@@ -41,7 +44,7 @@ def rsfpvc(rsfmat, roimean, iters = 8):
     Returns:
          m (numpy.ndarray): Returns the RSF corrected mean values.
     """
-    
+
     m = np.copy(roimean)  # Initial estimation
 
     steps = []  # To store intermediate results for each iteration
@@ -54,6 +57,7 @@ def rsfpvc(rsfmat, roimean, iters = 8):
         steps.append(np.copy(m))  # Store the current state of m
 
     return m
+
 
 def apply_rsfpvc(pet_file, rsfmat_file=None, rsfmask=None, iters=8):
     """
@@ -73,56 +77,78 @@ def apply_rsfpvc(pet_file, rsfmat_file=None, rsfmask=None, iters=8):
     """
 
     if rsfmat_file is None:
-        rsfmat_file = os.path.join(os.path.dirname(pet_file), 'rsfmat.txt')
+        rsfmat_file = os.path.join(os.path.dirname(pet_file), "rsfmat.txt")
 
     # Read RSFMat.txt
     try:
-        rsfmat = np.loadtxt(rsfmat_file, delimiter='\t')
+        rsfmat = np.loadtxt(rsfmat_file, delimiter="\t")
     except Exception as e:
         raise IOError(f"Error reading {rsfmat_file}: {e}")
-    
+
     if rsfmask is None:
-        rsfmask = os.path.join(os.path.dirname(pet_file), 'RSFMask.nii.gz')
+        rsfmask = os.path.join(os.path.dirname(pet_file), "RSFMask.nii.gz")
 
     df = extract_roi_data(rsfmask, pet_file)
     # get the roi mean values into a numpy column vector
-    roimean = df['Mean Value'].to_numpy().reshape(-1,1)
+    roimean = df["Mean Value"].to_numpy().reshape(-1, 1)
     # Run the RSF PVC algorithm
     rsf_mean = rsfpvc(rsfmat, roimean, iters)
-    ref_df = df.drop['Mean Value']
-    ref_df['Mean Value'] = rsf_mean
+    ref_df = df.drop["Mean Value"]
+    ref_df["Mean Value"] = rsf_mean
 
     # Compute SUVRLR
     suvrlr, ref_value = calculate_suvrlr(df)
     # Compute SUVR
     suvr = calculate_suvr(df, ref_value)
 
-    suvrlr_file = os.path.join(os.path.dirname(pet_file), 'RSF_SUVRLR.csv')
-    suvr_file = os.path.join(os.path.dirname(pet_file), 'RSF_SUVR.csv')
+    suvrlr_file = os.path.join(os.path.dirname(pet_file), "RSF_SUVRLR.csv")
+    suvr_file = os.path.join(os.path.dirname(pet_file), "RSF_SUVR.csv")
 
     # Write output files
     write_dataframe_to_csv(suvrlr, suvrlr_file)
     write_dataframe_to_csv(suvr, suvr_file)
     return None
 
+
 def main():
-    parser = argparse.ArgumentParser(description='Run RSF PVC algorithm.')
-    parser.add_argument('--pet_file', type=str, required=True, help="Path to the msum pet file.")
-    parser.add_argument('--rsfmat', type=str, default=None, required=False, help="Path to the RSF matrix (CSV file).")
-    parser.add_argument('--rsfmask', type=str, default=None, required=False, help="Path to the ROI mean vector (CSV file).")
-    parser.add_argument('--iters', type=int, default=8, required=False, help="Number of iterations. Default is 8.")
+    parser = argparse.ArgumentParser(description="Run RSF PVC algorithm.")
+    parser.add_argument(
+        "--pet_file", type=str, required=True, help="Path to the msum pet file."
+    )
+    parser.add_argument(
+        "--rsfmat",
+        type=str,
+        default=None,
+        required=False,
+        help="Path to the RSF matrix (CSV file).",
+    )
+    parser.add_argument(
+        "--rsfmask",
+        type=str,
+        default=None,
+        required=False,
+        help="Path to the ROI mean vector (CSV file).",
+    )
+    parser.add_argument(
+        "--iters",
+        type=int,
+        default=8,
+        required=False,
+        help="Number of iterations. Default is 8.",
+    )
 
     args = parser.parse_args()
 
     apply_rsfpvc(args.pet_file, args.rsfmat, args.rsfmask, args.iters)
 
     # Load input files
-    rsfmat = np.loadtxt(args.rsfmat, delimiter=',')
-    roimean = np.loadtxt(args.roimean, delimiter=',')
+    rsfmat = np.loadtxt(args.rsfmat, delimiter=",")
+    roimean = np.loadtxt(args.roimean, delimiter=",")
 
     # Run the RSF PVC algorithm
     corrected_mean = rsfpvc(rsfmat, roimean, args.iters)
     print(corrected_mean)
+
 
 if __name__ == "__main__":
     main()

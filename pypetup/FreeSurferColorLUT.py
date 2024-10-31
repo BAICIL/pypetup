@@ -1548,7 +1548,7 @@ FreeSurferColorLUT = {
     "20061": "other20061",
     "20062": "other20062",
     "20063": "other20063",
-    "20064": "other20064"
+    "20064": "other20064",
 }
 
 ROIs = {
@@ -1605,5 +1605,5 @@ ROIs = {
     "temporalpole": 4,
     "transversetemporal": 4,
     "insula": 4,
-    "UnsegmentedWhiteMatter": 2
+    "UnsegmentedWhiteMatter": 2,
 }
