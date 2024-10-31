@@ -346,7 +346,7 @@ def write_dataframe_to_csv(df, output_file):
         None
     """
     try:
-        df.to_csv(output_file, index=False)
+        df.to_csv(output_file, sep='\t', index=False)
     except Exception as e:
-        raise IOError(f"Error saving output file: {e}")
+        raise IOError(f"Error saving DataFrame to CSV: {e}")
     return None
