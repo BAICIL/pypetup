@@ -124,7 +124,7 @@ def perform_motion_correction(input_4d_nifti, output_dir=None):
         )
         print(f"Motion parameters plot saved to: {motion_params_plot}")
 
-        return output_4d_nifti
+        return output_4d_nifti + '.nii.gz'
 
 
 def main():

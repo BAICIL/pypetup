@@ -45,7 +45,7 @@ def run_pup(
     _ = pup.time_function(pup.copy_file, **{"src": pet_nifti, "dest": copy_pet_nifti})
 
     print("Performing motion correction")
-    mocofile = pup.time_function(pup.perform_motion_correction, *(copy_pet_nifti))
+    mocofile = pup.time_function(pup.perform_motion_correction, (copy_pet_nifti))
 
     print("Processing MRI FreeSurfer data")
     t1_mgz = os.path.join(fs_dir, t1_filename)
@@ -85,10 +85,10 @@ def run_pup(
     if not norsf and data["Smoothed"] == "yes":
         print("Preparing to perform RSF correction")
         headmask_file = os.path.join(process_folder, "headmask.nii.gz")
-        _ = pup.time_function(pup.prepare_for_rsf, *(headmask_file))
+        _ = pup.time_function(pup.prepare_for_rsf, (headmask_file))
 
         print("Performing RSF correction and generating corrected SUVR tables")
-        _ = pup.time_function(pup.apply_rsfpvc, *(msumfile))
+        _ = pup.time_function(pup.apply_rsfpvc, (msumfile))
 
     else:
         print("RSF correction not performed because:")
