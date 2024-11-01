@@ -163,7 +163,7 @@ def main():
             args.pet_nifti,
             args.fs_dir,
             args.pet_json,
-            args.devivatives_dir,
+            args.derivatives_dir,
             args.t1_filename,
             args.start_time,
             args.duration,
