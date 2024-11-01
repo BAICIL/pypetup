@@ -66,7 +66,7 @@ def perform_motion_correction(input_4d_nifti, output_dir=None):
             f"Single volume detected. Created a copy of the input file as: {output_4d_nifti}"
         )
         return output_4d_nifti
-    
+
     else:
 
         # Run mcflirt
@@ -119,7 +119,9 @@ def perform_motion_correction(input_4d_nifti, output_dir=None):
         plt.savefig(motion_params_plot)
         plt.close()
 
-        print(f"Motion correction completed. Corrected image saved to: {output_4d_nifti}")
+        print(
+            f"Motion correction completed. Corrected image saved to: {output_4d_nifti}"
+        )
         print(f"Motion parameters plot saved to: {motion_params_plot}")
 
         return output_4d_nifti

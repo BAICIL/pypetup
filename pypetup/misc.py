@@ -74,7 +74,7 @@ def convert_3d_atlas_to_4d_binary_labels(atlas_path, output_4d_path):
         - The function uses compression level 9 for saving the output NIfTI file.
         - The background label is assumed to be 0 and is excluded from the binary masks.
     """
-    
+
     nib.openers.Opener.default_compresslevel = 9
 
     # Load the 3D atlas NIfTI file
@@ -113,7 +113,7 @@ def convert_3d_atlas_to_4d_binary_labels(atlas_path, output_4d_path):
         raise IOError(f"Could not save PET sum file {output_4d_path}")
 
     print(f"Conversion complete. Saved as {output_4d_path}")
-    
+
     return None
 
 
@@ -386,14 +386,13 @@ def write_dataframe_to_csv(df, output_file):
     return None
 
 
-
 def copy_file(src, dest):
     try:
         # Check if the source file exists
         if not os.path.exists(src):
             print(f"Source file does not exist: {src}")
             return
-        
+
         # Check if the destination file already exists
         if not os.path.exists(dest):
             shutil.copy2(src, dest)
@@ -403,15 +402,16 @@ def copy_file(src, dest):
         return None
     except PermissionError:
         print(f"Permission denied when accessing {src} or {dest}.")
-    
+
     except FileNotFoundError:
         print(f"File not found error: either {src} or {dest} path is invalid.")
-    
+
     except shutil.SameFileError:
         print("Source and destination represent the same file.")
-    
+
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
+
 
 def time_function(func, *args, **kwargs):
     """
@@ -425,7 +425,7 @@ def time_function(func, *args, **kwargs):
 
     Returns:
     - result: The result of the function call if successful, otherwise None.
-    
+
     Prints:
     - The execution time in hh:mm:ss format.
     - An error message if the function execution fails.
@@ -441,7 +441,9 @@ def time_function(func, *args, **kwargs):
         minutes, seconds = divmod(remainder, 60)
 
         # Print the execution time
-        print(f"Execution time for {func.__name__}: {int(hours):02}:{int(minutes):02}:{int(seconds):02}")
+        print(
+            f"Execution time for {func.__name__}: {int(hours):02}:{int(minutes):02}:{int(seconds):02}"
+        )
         return result
 
     except Exception as e:
