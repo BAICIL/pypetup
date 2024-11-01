@@ -19,7 +19,7 @@ setup(
     # List dependencies (install_requires can also directly list dependencies if requirements.txt is not used)
     install_requires=[
         'fslpy',
-        'matplotlib'
+        'matplotlib',
         'numpy',
         'nibabel',
         'pandas',
