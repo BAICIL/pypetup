@@ -43,7 +43,7 @@ options:
   --fs_dir FS_DIR
     Path of the Subjects FreeSurfer mri directory.
   --t1_filename T1_FILENAME
-    File name with extension of the T1 file (optional, default=orig_nu.mgz 
+    File name with extension of the T1 file (optional, default=orig_nu.mgz) 
   --start_time START_TIME
     Start time for frames of interest (optional, default=None)
   --duration DURATION
@@ -57,6 +57,12 @@ options:
 
 ```
 run_pup --pet_nift /path/to/pet.nii.gz \
-        --fs_dir /path/to/subject/mri \
+        --fs_dir /path/to/subject/mri 
 
 ```
+2. Organized minimal inputs: In this case the derivatives directory will be provided by the user to better organize the output. In this case, the processed data will be located in the `derivatives/sub-XXX/ses-XXX/Tracer/`
+
+```
+run_pup --pet_nifti /path/to/pet.nii.gz \
+        --derivatives_dir /path/to/derivatives
+        --fs_dir /path/to/subject/mri

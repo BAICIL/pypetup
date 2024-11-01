@@ -149,7 +149,7 @@ def main():
         type=float,
         required=False,
         default=None,
-        help="Total duration of frames of interest (optional, default=None)",
+        help="Total duration for frames of interest (optional, default=None)",
     )
     parser.add_argument(
         "--norsf", action="store_true", help="Do not perform RSF correction"
