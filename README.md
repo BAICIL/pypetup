@@ -4,9 +4,9 @@ PET Unified Pipeline in Python.
 This package perform quantative processing of PET data. This package closely replicates the original PET Unified Pipeline (PUP) developed by Dr. Yi Su (https://github.com/ysu001/PUP).
 
 # Pre-requisites 
-OS = MacOS or Linux
-FreeSurfer >= version 7 correctly configured
-FSL >= version 6 correctly configured
+* OS = MacOS or Linux
+* FreeSurfer >= version 7 correctly configured
+* FSL >= version 6 correctly configured
 
 # Install
 
