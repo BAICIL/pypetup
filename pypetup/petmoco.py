@@ -1,6 +1,5 @@
 import argparse
 import os
-import sys
 
 import fsl.wrappers as fsl
 import matplotlib.pyplot as plt
@@ -57,7 +56,7 @@ def perform_motion_correction(input_4d_nifti, output_dir=None):
     except Exception as e:
         raise RuntimeError(f"An unexpected error occurred: {e}")
 
-    if len(img.shape) == 3:
+    if len(img.shape) == 3 or img.shape[3] == 1:
         # If the number of volumes is 1, create a copy of the input file as the output file
         try:
             _ = fsl.fslmaths(input_4d_nifti).mul(1).run(output_4d_nifti)
@@ -67,62 +66,63 @@ def perform_motion_correction(input_4d_nifti, output_dir=None):
             f"Single volume detected. Created a copy of the input file as: {output_4d_nifti}"
         )
         return output_4d_nifti
-        sys.exit(0)
+    
+    else:
 
-    # Run mcflirt
-    try:
-        _ = fsl.mcflirt(
-            infile=input_4d_nifti,
-            out=output_4d_nifti,
-            plots="plots",
-            meanvol="meanvol",
-            report="report",
-        )
-    except Exception as e:
-        print(f"MCFLIRT ERROR: {e}")
+        # Run mcflirt
+        try:
+            _ = fsl.mcflirt(
+                infile=input_4d_nifti,
+                out=output_4d_nifti,
+                plots="plots",
+                meanvol="meanvol",
+                report="report",
+            )
+        except Exception as e:
+            print(f"MCFLIRT ERROR: {e}")
 
-    # Check if motion corrected nifti file was generated
-    if not os.path.isfile(output_4d_nifti + ".nii.gz"):
-        raise FileNotFoundError(
-            f"Motion corrected file not found: {output_4d_nifti}.nii.gz"
-        )
+        # Check if motion corrected nifti file was generated
+        if not os.path.isfile(output_4d_nifti + ".nii.gz"):
+            raise FileNotFoundError(
+                f"Motion corrected file not found: {output_4d_nifti}.nii.gz"
+            )
 
-    # Check if motion parameter file was generated
-    if not os.path.exists(motion_params_file):
-        raise FileNotFoundError(
-            f"Motion parameter file not found: {motion_params_file}"
-        )
+        # Check if motion parameter file was generated
+        if not os.path.exists(motion_params_file):
+            raise FileNotFoundError(
+                f"Motion parameter file not found: {motion_params_file}"
+            )
 
-    # Load motion parameters
-    motion_params = np.loadtxt(motion_params_file)
+        # Load motion parameters
+        motion_params = np.loadtxt(motion_params_file)
 
-    # Create figure with subplots
-    plt.figure(figsize=(10, 12))
+        # Create figure with subplots
+        plt.figure(figsize=(10, 12))
 
-    # Subplot for translational motion parameters
-    plt.subplot(2, 1, 1)  # 2 rows, 1 column, 1st subplot
-    plt.plot(motion_params[:, 3:6])
-    plt.xlabel("Volume")
-    plt.ylabel("Translation (mm)")
-    plt.title("Translational Motion Parameters from MCFLIRT")
-    plt.legend(["X (mm)", "Y (mm)", "Z (mm)"])
+        # Subplot for translational motion parameters
+        plt.subplot(2, 1, 1)  # 2 rows, 1 column, 1st subplot
+        plt.plot(motion_params[:, 3:6])
+        plt.xlabel("Volume")
+        plt.ylabel("Translation (mm)")
+        plt.title("Translational Motion Parameters from MCFLIRT")
+        plt.legend(["X (mm)", "Y (mm)", "Z (mm)"])
 
-    # Subplot for rotational motion parameters
-    plt.subplot(2, 1, 2)  # 2 rows, 1 column, 2nd subplot
-    plt.plot(motion_params[:, 0:3])
-    plt.xlabel("Volume")
-    plt.ylabel("Rotation (radians)")
-    plt.title("Rotational Motion Parameters from MCFLIRT")
-    plt.legend(["Rot X (radians)", "Rot Y (radians)", "Rot Z (radians)"])
+        # Subplot for rotational motion parameters
+        plt.subplot(2, 1, 2)  # 2 rows, 1 column, 2nd subplot
+        plt.plot(motion_params[:, 0:3])
+        plt.xlabel("Volume")
+        plt.ylabel("Rotation (radians)")
+        plt.title("Rotational Motion Parameters from MCFLIRT")
+        plt.legend(["Rot X (radians)", "Rot Y (radians)", "Rot Z (radians)"])
 
-    # Save the plot
-    plt.savefig(motion_params_plot)
-    plt.close()
+        # Save the plot
+        plt.savefig(motion_params_plot)
+        plt.close()
 
-    print(f"Motion correction completed. Corrected image saved to: {output_4d_nifti}")
-    print(f"Motion parameters plot saved to: {motion_params_plot}")
+        print(f"Motion correction completed. Corrected image saved to: {output_4d_nifti}")
+        print(f"Motion parameters plot saved to: {motion_params_plot}")
 
-    return output_4d_nifti
+        return output_4d_nifti
 
 
 def main():

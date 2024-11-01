@@ -141,14 +141,5 @@ def main():
 
     apply_rsfpvc(args.pet_file, args.rsfmat, args.rsfmask, args.iters)
 
-    # Load input files
-    rsfmat = np.loadtxt(args.rsfmat, delimiter=",")
-    roimean = np.loadtxt(args.roimean, delimiter=",")
-
-    # Run the RSF PVC algorithm
-    corrected_mean = rsfpvc(rsfmat, roimean, args.iters)
-    print(corrected_mean)
-
-
 if __name__ == "__main__":
     main()

@@ -322,6 +322,7 @@ def report_suvr(label_file, pet_image_file, output_dir=None):
     # Write output files
     write_dataframe_to_csv(suvrlr, suvrlr_file)
     write_dataframe_to_csv(suvr, suvr_file)
+    return None
 
 
 def main():
