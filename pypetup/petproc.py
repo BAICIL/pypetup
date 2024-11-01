@@ -72,8 +72,6 @@ def run_pup(pet_nifti, fs_dir, pet_json=None, derivatives_dir=None, t1_filename=
 
     return None
 
-
-
 def main():
     """
     Main Function to handle command-line arguments and perform PET processing. 
