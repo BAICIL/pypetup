@@ -90,11 +90,11 @@ def apply_rsfpvc(pet_file, rsfmat_file=None, rsfmask=None, iters=8):
 
     df = extract_roi_data(rsfmask, pet_file)
     # get the roi mean values into a numpy column vector
-    roimean = df["Mean Value"].to_numpy().reshape(-1, 1)
+    roimean = df["Mean_Signal"].to_numpy().reshape(-1, 1)
     # Run the RSF PVC algorithm
     rsf_mean = rsfpvc(rsfmat, roimean, iters)
-    ref_df = df.drop["Mean Value"]
-    ref_df["Mean Value"] = rsf_mean
+    ref_df = df.drop["Mean_Signal"]
+    ref_df["Mean_Signal"] = rsf_mean
 
     # Compute SUVRLR
     suvrlr, ref_value = calculate_suvrlr(df)
