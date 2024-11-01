@@ -442,7 +442,7 @@ def time_function(func, *args, **kwargs):
 
         # Print the execution time
         print(
-            f"Execution time for {func.__name__}: {int(hours):02}:{int(minutes):02}:{int(seconds):02}"
+            f"Execution time for {func.__name__}: {int(hours)}h {int(minutes)}m {int(seconds)}s"
         )
         return result
 
