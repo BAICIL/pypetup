@@ -93,7 +93,7 @@ def apply_rsfpvc(pet_file, rsfmat_file=None, rsfmask=None, iters=8):
     roimean = df["Mean_Signal"].to_numpy().reshape(-1, 1)
     # Run the RSF PVC algorithm
     rsf_mean = rsfpvc(rsfmat, roimean, iters)
-    ref_df = df.drop["Mean_Signal"]
+    ref_df = df.drop('Mean_Signal', axis=1)
     ref_df["Mean_Signal"] = rsf_mean
 
     # Compute SUVRLR
