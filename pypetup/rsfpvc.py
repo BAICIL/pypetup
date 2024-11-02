@@ -7,7 +7,8 @@ import pandas as pd
 from .misc import write_dataframe_to_csv
 from .suvr import calculate_suvr, calculate_suvrlr, extract_roi_data
 
-'''def rsfpvcv1(rsfmat, roimean, iters):
+'''
+def rsfpvc(rsfmat, roimean, iters):
     """
     rsfmat: a dictionary containing 'n' (matrix size) and 'mat' (n x n numpy array)
     roimean: a numpy array of size n
@@ -33,7 +34,6 @@ from .suvr import calculate_suvr, calculate_suvrlr, extract_roi_data
     return m
 '''
 
-
 def rsfpvc(rsfmat, roimean, iters=8):
     """
     Performs the actual RSF PVC correction
@@ -57,7 +57,6 @@ def rsfpvc(rsfmat, roimean, iters=8):
         steps.append(np.copy(m))  # Store the current state of m
 
     return m
-
 
 def apply_rsfpvc(pet_file, rsfmat_file=None, rsfmask=None, iters=8):
     """
@@ -91,15 +90,16 @@ def apply_rsfpvc(pet_file, rsfmat_file=None, rsfmask=None, iters=8):
     df = extract_roi_data(rsfmask, pet_file)
     # get the roi mean values into a numpy column vector
     roimean = df["Mean_Signal"].to_numpy().reshape(-1, 1)
+    #roimean = df["Mean_Signal"].to_numpy().reshape(1, -1)
     # Run the RSF PVC algorithm
     rsf_mean = rsfpvc(rsfmat, roimean, iters)
-    ref_df = df.drop('Mean_Signal', axis=1)
-    ref_df["Mean_Signal"] = rsf_mean
+    rsf_df = df.drop('Mean_Signal', axis=1)
+    rsf_df["Mean_Signal"] = rsf_mean
 
     # Compute SUVRLR
-    suvrlr, ref_value = calculate_suvrlr(df)
+    suvrlr, ref_value = calculate_suvrlr(rsf_df)
     # Compute SUVR
-    suvr = calculate_suvr(df, ref_value)
+    suvr = calculate_suvr(rsf_df, ref_value)
 
     suvrlr_file = os.path.join(os.path.dirname(pet_file), "RSF_SUVRLR.csv")
     suvr_file = os.path.join(os.path.dirname(pet_file), "RSF_SUVR.csv")

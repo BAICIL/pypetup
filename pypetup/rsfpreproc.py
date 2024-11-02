@@ -132,11 +132,11 @@ def generate_rsfmat(image_path, label_path, output_dir=None):
         roi_values = image_data[roi_mask]
         mean_values.append(np.mean(roi_values, axis=0))
     # transposing mean_values to correctly store the rsfmat
-    mean_values_t = np.array(mean_values).T
+    #mean_values_t = np.array(mean_values).T
 
     # Save the rsfmat to a text file
-    np.savetxt(output_file, mean_values_t, delimiter="\t")
-
+    #np.savetxt(output_file, mean_values_t, delimiter="\t")
+    np.savetxt(output_file, mean_values, delimiter="\t")
     return None
 
 
