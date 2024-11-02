@@ -431,9 +431,9 @@ def time_function(func, *args, **kwargs):
     - An error message if the function execution fails.
     """
     try:
-        start_time = time.perf_counter()
+        start_time = time.time()
         result = func(*args, **kwargs)
-        end_time = time.perf_counter()
+        end_time = time.time()
 
         # Calculate elapsed time
         total_time = end_time - start_time
