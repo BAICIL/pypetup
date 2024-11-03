@@ -13,9 +13,7 @@ This package perform quantative processing of PET data. This package closely rep
 Clone the github repo:
 
 ```
-git clone https://github.com/BAICIL/pypetup.git
-cd pypetup
-pip install .
+pip install git+https://github.com/BAICIL/pypetup.git
 ```
 
 # Usage
