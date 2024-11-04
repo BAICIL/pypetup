@@ -1,0 +1,71 @@
+{
+    "Modality": "PT",
+    "Manufacturer": null,
+    "ManufacturersModelName": "Discovery 710",
+    "PatientPosition": "HFS",
+    "ProcedureStepDescription": "",
+    "SoftwareVersions": "53.00",
+    "SeriesDescription": "192x192,4i24s,NOFILTER (ADNI",
+    "ProtocolName": "",
+    "ImageType": [
+        "ORIGINAL",
+        "PRIMARY"
+    ],
+    "SeriesNumber": 12,
+    "AcquisitionTime": "133401",
+    "Radiopharmaceutical": "PIB",
+    "RadionuclidePositronFraction": 0.99800002574921,
+    "RadionuclideTotalDose": 585739584.0,
+    "RadionuclideHalfLife": 1223.0999755859,
+    "DoseCalibrationFactor": 13303.0,
+    "Units": "BQML",
+    "DecayCorrection": "START",
+    "AttenuationCorrectionMethod": "measured,, 0.000000 cm-1, attenuation smooth",
+    "ReconstructionMethod": "VPHD",
+    "DecayFactor": [
+        1.08741,
+        1.28894,
+        1.5278,
+        1.81094
+    ],
+    "FrameTimesStart": [
+        0.0,
+        5.0,
+        10.0,
+        15.0
+    ],
+    "FrameTimesStartUnits": "min",
+    "FrameDuration": [
+        5.0,
+        5.0,
+        5.0,
+        5.0
+    ],
+    "FrameDurationUnits": "min",
+    "FrameTimesEnd": [
+        5.0,
+        10.0,
+        15.0,
+        20.0
+    ],
+    "FrameTimesEndUnits": "min",
+    "SliceThickness": 3.27,
+    "ImageOrientationPatientDICOM": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        -0.0
+    ],
+    "ConversionSoftware": "dcm2niix",
+    "ConversionSoftwareVersion": "v1.0.20220505",
+    "StudyDate": "20200131",
+    "PyPET2NIFTIVersion": "0.1",
+    "Smoothed": "yes",
+    "FilterSize": [
+        5.5,
+        5.5,
+        5.0
+    ]
+}

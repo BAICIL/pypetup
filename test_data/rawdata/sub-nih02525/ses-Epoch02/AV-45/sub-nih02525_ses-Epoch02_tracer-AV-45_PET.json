@@ -1,0 +1,64 @@
+{
+    "Modality": "PT",
+    "Manufacturer": "Siemens",
+    "ManufacturersModelName": 962,
+    "PatientPosition": "HFS",
+    "ProcedureStepDescription": "",
+    "SoftwareVersions": 72,
+    "SeriesDescription": "4x300s Emission 4i/16s ",
+    "ProtocolName": "4x300s Emission 4i/16s ",
+    "ImageType": [
+        "ORIGINAL",
+        "PRIMARY"
+    ],
+    "SeriesNumber": "1",
+    "AcquisitionTime": "154601",
+    "Radiopharmaceutical": "AV-45",
+    "RadionuclidePositronFraction": "",
+    "RadionuclideTotalDose": 339660000.0,
+    "RadionuclideHalfLife": 6586.2001953125,
+    "DoseCalibrationFactor": 9840824.0,
+    "Units": "Bq/cc",
+    "DecayCorrection": "START",
+    "AttenuationCorrectionMethod": "",
+    "ReconstructionMethod": "osem-wa4/16",
+    "DecayFactor": [
+        1.0158711671829224,
+        1.0484566688537598,
+        1.0820873975753784,
+        1.116796851158142
+    ],
+    "FrameTimesStart": [
+        0.0002666666666666667,
+        5.000266666666667,
+        10.000266666666667,
+        15.000266666666667
+    ],
+    "FrameTimesStartUnits": "min",
+    "FrameDuration": [
+        5.0,
+        5.0,
+        5.0,
+        5.0
+    ],
+    "FrameDurationUnits": "min",
+    "FrameTimesEnd": [
+        5.000266666666667,
+        10.000266666666667,
+        15.000266666666667,
+        20.00026666666667
+    ],
+    "FrameTimesEndUnits": "min",
+    "SliceThickness": 2.4250000715255737,
+    "ImageOrientationPatientDICOM": [],
+    "ConversionSoftware": "dcm2niix",
+    "ConversionSoftwareVersion": "v1.0.20220505",
+    "StudyDate": "20150127",
+    "PyPET2NIFTIVersion": "0.1",
+    "Smoothed": "yes",
+    "FilterSize": [
+        5.0,
+        5.0,
+        5.0
+    ]
+}
