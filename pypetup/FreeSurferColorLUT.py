@@ -1548,7 +1548,7 @@ FreeSurferColorLUT = {
     "20061": "other20061",
     "20062": "other20062",
     "20063": "other20063",
-    "20064": "other20064",
+    "20064": "other20064"
 }
 
 ROIs = {
