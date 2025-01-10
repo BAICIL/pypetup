@@ -22,6 +22,22 @@ def sum_4d_pet(pet_image):
     sum_data = np.sum(pet_data, axis=3)
     return nib.Nifti1Image(sum_data, pet_image.affine, pet_image.header)
 
+def create_pet_fov(pet_image):
+    """
+    Sum a 4D PET image to create a 3D sum image.
+
+    Args:
+    pet_image (nibabel.Nifti1Image): 3D PET image (eg. PET sum image)
+
+    Returns:
+    nibabel.Nifti1Image: 3D PET FOV binary image
+    """
+    pet_data = pet_image.get_fdata()
+    fov_mask = np.ones(pet_data.shape[:3], dtype=np.unit8)
+    fov_mask[:, :, :4] = 0
+    fov_mask[:, :, -4:] = 0
+    
+    return nib.Nifti1Image(fov_mask, pet_image.affine, pet_image.header)
 
 def coregister_pet_to_t1(pet_file, t1_file, output_dir=None):
     """
@@ -74,6 +90,14 @@ def coregister_pet_to_t1(pet_file, t1_file, output_dir=None):
         nib.save(pet_sum_image, pet_sum_file)
     except IOError:
         raise IOError(f"Could not save PET sum file {pet_sum_file}")
+    
+    # Create PET FOV in pet sapce
+    pet_fov_file = os.path.join(output_dir, 'petfov.nii.gz')
+    pet_fov_image = create_pet_fov(pet_sum_image)
+    try:
+        nib.save(pet_fov_image, pet_fov_file)
+    except IOError:
+        raise IOError(f"Could not save PET FOV file {pet_fov_file}")
 
     # Coregister PET sum image to T1 using FLIRT
     matrix_file = os.path.join(output_dir, "sumall_to_t1.mat")
@@ -97,6 +121,20 @@ def coregister_pet_to_t1(pet_file, t1_file, output_dir=None):
     except Exception as e:
         raise RuntimeError(f"An unexpected error occurred during APPLYXFM: {e}")
 
+    # Apply transformation to the PET FOV image
+    print("Applying transformation to PET image...")
+    coreg_fov_file = os.path.join(output_dir, 'PETFOV.nii.gz')
+    try:
+        applyxfm(
+            src=pet_fov_file,
+            ref=t1_file,
+            mat=matrix_file,
+            out=coreg_fov_file,
+            interp="nearestneighbour",
+        )
+    except Exception as e:
+        raise RuntimeError(f"An unexpected error occurred during APPLYXFM: {e}")
+    
     return pet_coreg_file
 
 
