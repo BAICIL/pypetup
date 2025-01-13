@@ -39,7 +39,7 @@ def extract_roi_data(label_file, pet_image_file, fov_image_file=None):
     # Get the data as numpy arrays
     label_data = label_img.get_fdata()
     pet_data = pet_img.get_fdata()
-    fov_data = pet_img.get_fdata()
+    fov_data = fov_img.get_fdata()
 
     # Get unique label IDs
     label_ids = np.unique(label_data)

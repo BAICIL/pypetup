@@ -122,7 +122,7 @@ def coregister_pet_to_t1(pet_file, t1_file, output_dir=None):
         raise RuntimeError(f"An unexpected error occurred during APPLYXFM: {e}")
 
     # Apply transformation to the PET FOV image
-    print("Applying transformation to PET image...")
+    print("Applying transformation to FOV image...")
     coreg_fov_file = os.path.join(output_dir, 'PETFOV.nii.gz')
     try:
         applyxfm(
