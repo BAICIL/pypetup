@@ -10,7 +10,7 @@ from .FreeSurferColorLUT import FreeSurferColorLUT, ROIs
 from .misc import write_dataframe_to_csv
 
 
-def extract_roi_data(label_file, pet_image_file, petfov_file=None):
+def extract_roi_data(label_file, pet_image_file, fov_image_file=None):
     """
     Extract ROI data from the label and PET image files.
 
@@ -22,13 +22,13 @@ def extract_roi_data(label_file, pet_image_file, petfov_file=None):
         pd.DataFrame: DataFrame containing ROI Label ID, Label Name, Mean PET Value, and Number of Voxels.
     """
     output_dir = os.path.dirname(label_file)
-    if petfov_file is None:
-        petfov_file = os.path.join(output_dir, "PETFOV.nii.gz")
+    if fov_image_file is None:
+        fov_image_file = os.path.join(output_dir, "PETFOV.nii.gz")
     try:
         # Load images using nibabel
         label_img = nib.load(label_file)
         pet_img = nib.load(pet_image_file)
-        fov_img = nib.load(petfov_file)
+        fov_img = nib.load(fov_image_file)
     except FileNotFoundError as e:
         print(f"Error: {e}")
         sys.exit(1)
@@ -54,16 +54,24 @@ def extract_roi_data(label_file, pet_image_file, petfov_file=None):
     # Iterate through each label and calculate mean PET value and number of voxels
     for label in label_ids:
         label = int(label)
-        if label != 0:  # Assuming 0 is the background, skip it
+        if label != 99999:  # Assuming 0 is the background, skip it
             # Get a mask of the current label
-            mask = label_data == label
+            mask = np.logical_and((label_data == label), (fov_data == 1))
+
+            # Calculate number of voxels
+            voxel_count = np.sum(mask)
+
+            # Accounting for ROI's outside of FOV
+            # In this case mean of non-zero voxels * 0.8 is used as mean value
+            if voxel_count == 0:
+                mask = label_data >= 1
 
             # Extract the values from the PET image corresponding to this label
             pet_values = pet_data[mask]
 
             # Calculate mean and number of voxels
             mean_value = np.mean(pet_values)
-            voxel_count = np.sum(mask)
+            
 
             # Append to the lists
             roi_label_id.append(label)
@@ -71,7 +79,7 @@ def extract_roi_data(label_file, pet_image_file, petfov_file=None):
             num_voxels.append(voxel_count)
 
             # Get label name from the dictionary, use 'Unknown' if not found
-            label_names.append(label_dict.get(str(label), "Unknown"))
+            label_names.append(label_dict.get(str(label), "missing"))
 
     # Create a DataFrame for better visualization
     df = pd.DataFrame(
@@ -300,7 +308,7 @@ def calculate_suvr(df, ref_value):
     return result_df
 
 
-def report_suvr(label_file, pet_image_file, output_dir=None):
+def report_suvr(label_file, pet_image_file, fov_image_file=None, output_dir=None):
     """
     Main function to extract ROI data and calculate SUVR.
 
@@ -314,6 +322,9 @@ def report_suvr(label_file, pet_image_file, output_dir=None):
     """
     if output_dir is None:
         output_dir = os.path.dirname(label_file)
+
+    if fov_image_file is None:
+        fov_image_file = os.path.join(output_dir, "PETFOV.nii.gz")
 
     suvrlr_file = os.path.join(output_dir, "SUVRLR.csv")
     suvr_file = os.path.join(output_dir, "SUVR.csv")
@@ -345,6 +356,13 @@ def main():
         type=str,
         required=True,
         help="Path to the 3D PET (msum or sum) image NIfTI file.",
+    )
+    parser.add_argument(
+        "--fov_image_file",
+        type=str,
+        default=None,
+        required=False,
+        help="Path to the PET FOV file in MRI space"
     )
     parser.add_argument(
         "--output_dir",
