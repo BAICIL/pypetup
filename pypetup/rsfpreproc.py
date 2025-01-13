@@ -159,7 +159,7 @@ def generate_rsfmat(image_path, label_path, output_dir=None, batch_size=50):
     return None
 
 
-def prepare_for_rsf(headmask_nifti, wmparc_nifti=None):
+def prepare_for_rsf(headmask_nifti, wmparc_nifti=None, batch_size=50):
     """
     Preprocessing for RSF computation
 
@@ -238,7 +238,7 @@ def prepare_for_rsf(headmask_nifti, wmparc_nifti=None):
     filter_image(rsfmask4d, rsfmask4d_smth8)
 
     # Create RSF matrix
-    generate_rsfmat(rsfmask4d_smth8, rsfmask)
+    generate_rsfmat(rsfmask4d_smth8, rsfmask, batch_size=batch_size)
 
     return None
 
@@ -256,15 +256,15 @@ def main():
         required=False,
     )
     parser.add_argument(
-        "--sumall_t1",
-        type=str,
-        default=None,
-        help="Path to the sumall to T1 (nii.gz format, optional).",
+        "--batch_size",
+        type=int,
+        default=50,
+        help="Batch size for processing RSFMask 4D frames in batches (default = 50).",
         required=False,
     )
     args = parser.parse_args()
 
-    prepare_for_rsf(args.headmask, args.wmparc, args.sumall_t1)
+    prepare_for_rsf(args.headmask, args.wmparc, args.batch_size)
     print("Prepare for RSF correction Done.")
 
 
