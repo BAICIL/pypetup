@@ -33,7 +33,7 @@ def create_pet_fov(pet_image):
     nibabel.Nifti1Image: 3D PET FOV binary image
     """
     pet_data = pet_image.get_fdata()
-    fov_mask = np.ones(pet_data.shape[:3], dtype=np.unit8)
+    fov_mask = np.ones(pet_data.shape[:3], dtype=np.uint8)
     fov_mask[:, :, :4] = 0
     fov_mask[:, :, -4:] = 0
     
