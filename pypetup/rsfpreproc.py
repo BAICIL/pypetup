@@ -86,7 +86,7 @@ def convert_mask_to_label(mask_nifti_file, block_size=64, start_label=20001):
     return labeled_file
 
 
-def generate_rsfmat(image_path, label_path, output_dir=None):
+def generate_rsfmat(image_path, label_path, output_dir=None, batch_size=50):
     """
     Extract mean values from each label for each 3D frame in a 4D image and save as an MxN matrix.
 
@@ -94,6 +94,7 @@ def generate_rsfmat(image_path, label_path, output_dir=None):
         image_path (str): Path to the 4D image NIfTI file.
         label_path (str): Path to the 3D label NIfTI file.
         output_csv_path (str): Path to save the output CSV file containing the mean values matrix.
+        batch_size(int): Number of frames to process at a time (default = 50)
 
     Returns:
         None
@@ -116,31 +117,49 @@ def generate_rsfmat(image_path, label_path, output_dir=None):
 
     try:
         # Get the data from the images
-        image_data = image_4d.get_fdata()
+        image_data_proxy = image_4d.dataobj
         label_data = label_3d.get_fdata()
     except Exception as e:
         raise e
 
     # Get the unique labels in the atlas
     unique_labels = np.unique(label_data)
-    unique_labels = unique_labels[unique_labels != 0]  # Exclude the background label
+    #unique_labels = unique_labels[unique_labels != 0]  # Exclude the background label
 
-    # Extract mean time series for each ROI
-    mean_values = []
+    # Initialize a list to store the mean values for each label across all frames
+    mean_values = {label: [] for label in unique_labels}
+
+    # Iterate over the frames in batches
+    n_frames = image_4d.shape[-1]
+    for start_idx in range(0, n_frames, batch_size):
+        # Determine the end index for the current batch
+        end_idx = min(start_idx + batch_size, n_frames)
+
+        # Load the current batch of frames
+        time_slices = image_data_proxy[..., start_idx:end_idx]
+
+        #Process each label for the current batch
+        for label in unique_labels:
+            print(f"Processing label: {label} for frames: {start_idx} - {end_idx}")
+            roi_mask = label_data == label
+            roi_values = time_slices[roi_mask, :] # Extract values across all batch frames for current roi
+            mean_roi_values = np.mean(roi_values, axis=0) # Mean across the voxels for each frame in the batch
+            mean_values[label].extend(mean_roi_values) # Accumulate mean values for this label
+
+    # Prepare the mean values matrix
+    mean_values_matrix = []
     for label in unique_labels:
-        roi_mask = label_data == label
-        roi_values = image_data[roi_mask]
-        mean_values.append(np.mean(roi_values, axis=0))
-    # transposing mean_values to correctly store the rsfmat
-    #mean_values_t = np.array(mean_values).T
+        mean_values_matrix.append(mean_values[label])
+
+    # Convert mean values to numpy array
+    mean_values_matrix = np.array(mean_values_matrix)
 
     # Save the rsfmat to a text file
-    #np.savetxt(output_file, mean_values_t, delimiter="\t")
-    np.savetxt(output_file, mean_values, delimiter="\t")
+    np.savetxt(output_file, mean_values_matrix, delimiter="\t", fmt='%6e')
     return None
 
 
-def prepare_for_rsf(headmask_nifti, wmparc_nifti=None, sumall2t1_nifti=None):
+def prepare_for_rsf(headmask_nifti, wmparc_nifti=None):
     """
     Preprocessing for RSF computation
 
@@ -169,9 +188,6 @@ def prepare_for_rsf(headmask_nifti, wmparc_nifti=None, sumall2t1_nifti=None):
     if wmparc_nifti is None:
         wmparc_nifti = os.path.join(output_dir, "wmparc.nii.gz")
 
-    if sumall2t1_nifti is None:
-        sumall2t1_nifti = os.path.join(output_dir, "sumall_to_t1.nii.gz")
-
     # check if input files exist
     if not check_file_exists(headmask_nifti):
         raise FileNotFoundError(f"Input mask file {headmask_nifti} not found.")
@@ -179,13 +195,9 @@ def prepare_for_rsf(headmask_nifti, wmparc_nifti=None, sumall2t1_nifti=None):
     if not check_file_exists(wmparc_nifti):
         raise FileNotFoundError(f"Input mask file {wmparc_nifti} not found.")
 
-    if not check_file_exists(sumall2t1_nifti):
-        raise FileNotFoundError(f"Input mask file {sumall2t1_nifti} not found.")
-
     # Create output files.
     wmparc_bin = os.path.join(output_dir, "wmparc_bin.nii.gz")
-    pet_fov = os.path.join(output_dir, "petfov.nii.gz")
-    head_petfov = os.path.join(output_dir, "headmask_petfov.nii.gz")
+    head_nifti = os.path.join(output_dir, "head.nii.gz")
     rsfmask = os.path.join(output_dir, "RSFMask.nii.gz")
     rsfmask4d = os.path.join(output_dir, "RSFMask_4D.nii.gz")
     rsfmask4d_smth8 = os.path.join(output_dir, "RSFMask_4D_g8.nii.gz")
@@ -198,27 +210,20 @@ def prepare_for_rsf(headmask_nifti, wmparc_nifti=None, sumall2t1_nifti=None):
             f"Encounted an unexpected error wmparc to bin conversion: {e}"
         )
 
-    # Create pet fov
-    try:
-        _ = fslmaths(sumall2t1_nifti).bin().run(pet_fov, odt="short")
-    except Exception as e:
-        raise RuntimeError(f"Encounted an unexpected error PET FOV conversion: {e}")
-
-    # Create headmask in pet fov space
+    # Create head mask without brain
     try:
         _ = (
             fslmaths(headmask_nifti)
             .sub(wmparc_bin)
-            .mul(pet_fov)
-            .run(head_petfov, odt="int")
+            .run(head_nifti, odt="int")
         )
     except Exception as e:
         raise RuntimeError(
-            f"Encounted an unexpected error creating headmask in PET FOV: {e}"
+            f"Encounted an unexpected error creating headmask: {e}"
         )
 
     # Convert head mask in pet fov to labeled image.
-    labeled_file = convert_mask_to_label(head_petfov)
+    labeled_file = convert_mask_to_label(head_nifti)
 
     # Create RSF Mask
     try:

@@ -10,7 +10,7 @@ from .FreeSurferColorLUT import FreeSurferColorLUT, ROIs
 from .misc import write_dataframe_to_csv
 
 
-def extract_roi_data(label_file, pet_image_file):
+def extract_roi_data(label_file, pet_image_file, petfov_file=None):
     """
     Extract ROI data from the label and PET image files.
 
@@ -21,10 +21,14 @@ def extract_roi_data(label_file, pet_image_file):
     Returns:
         pd.DataFrame: DataFrame containing ROI Label ID, Label Name, Mean PET Value, and Number of Voxels.
     """
+    output_dir = os.path.dirname(label_file)
+    if petfov_file is None:
+        petfov_file = os.path.join(output_dir, "PETFOV.nii.gz")
     try:
         # Load images using nibabel
         label_img = nib.load(label_file)
         pet_img = nib.load(pet_image_file)
+        fov_img = nib.load(petfov_file)
     except FileNotFoundError as e:
         print(f"Error: {e}")
         sys.exit(1)
@@ -35,6 +39,7 @@ def extract_roi_data(label_file, pet_image_file):
     # Get the data as numpy arrays
     label_data = label_img.get_fdata()
     pet_data = pet_img.get_fdata()
+    fov_data = pet_img.get_fdata()
 
     # Get unique label IDs
     label_ids = np.unique(label_data)
