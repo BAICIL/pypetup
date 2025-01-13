@@ -10,6 +10,7 @@ def run_pup(
     pet_json=None,
     derivatives_dir=None,
     t1_filename="orig_nu.mgz",
+    batch_size=50,
     start_time=None,
     duration=None,
     norsf=False,
@@ -138,6 +139,13 @@ def main():
         help="File name with extension of the T1 file (optional, default=orig_nu.mgz)",
     )
     parser.add_argument(
+        "--batch_size",
+        type=int,
+        required=False,
+        default=50,
+        help="Batch size to process 4D RSFMask during rsfmat generation (default=50)."
+    )
+    parser.add_argument(
         "--start_time",
         type=float,
         required=False,
@@ -165,6 +173,7 @@ def main():
             args.pet_json,
             args.derivatives_dir,
             args.t1_filename,
+            args.batch_size,
             args.start_time,
             args.duration,
             args.norsf,
