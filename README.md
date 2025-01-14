@@ -22,7 +22,8 @@ run_pup [-h] --pet_nifti PET_NIFTI
             [--pet_json PET_JSON] 
             [--derivatives_dir DERIVATIVES_DIR] 
             --fs_dir FS_DIR 
-            [--t1_filename T1_FILENAME] 
+            [--t1_filename T1_FILENAME]
+            [--batch_size BATCH_SIZE]
             [--start_time START_TIME] 
             [--duration DURATION] 
             [--norsf]
@@ -41,7 +42,9 @@ options:
   --fs_dir FS_DIR
     Path of the Subjects FreeSurfer mri directory.
   --t1_filename T1_FILENAME
-    File name with extension of the T1 file (optional, default=orig_nu.mgz) 
+    File name with extension of the T1 file (optional, default=orig_nu.mgz)
+  --batch_size BATCH_SIZE
+    Batch size for processing 4D RSFMask image (optional, default=50)
   --start_time START_TIME
     Start time for frames of interest (optional, default=None)
   --duration DURATION
