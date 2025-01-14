@@ -31,7 +31,7 @@ def convert_mask_to_label(mask_nifti_file, block_size=64, start_label=20001):
 
     # get output file names and paths
     output_dir = os.path.dirname(mask_nifti_file)
-    labeled_file = os.path.join(output_dir, "labeled_headmask_petfov.nii.gz")
+    labeled_file = os.path.join(output_dir, "labeled_head.nii.gz")
 
     # Load the mask nifti file
     try:

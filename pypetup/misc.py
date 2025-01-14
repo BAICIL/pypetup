@@ -92,7 +92,7 @@ def convert_3d_atlas_to_4d_binary_labels(atlas_path, output_4d_path):
 
     # Get unique ROI labels from the atlas (excluding the background label, assumed to be 0)
     roi_labels = np.unique(atlas_data)
-    roi_labels = roi_labels[roi_labels != 0]
+    #roi_labels = roi_labels[roi_labels != 0]
 
     # Create an empty 4D array with the same spatial dimensions as the atlas and depth equal to the number of ROIs
     shape_4d = list(atlas_data.shape) + [len(roi_labels)]
@@ -333,13 +333,13 @@ def filter_image(image_4d, output_4d, filter_size=[8, 8, 8]):
 
     try:
         img = nib.load(image_4d)
-        data = img.get_fdata()
+        data = img.get_fdata(dtype=np.float32)
     except nib.filebasedimages.ImageFileError as ie:
         raise ie
     except Exception as e:
         raise e
     fwhm = np.array(filter_size)
-    sigma = fwhm / 2.355
+    sigma = fwhm / np.sqrt(8 * np.log(2))
     voxel_size = np.abs(np.diag(img.affine))[:3]
     sigma_voxel = sigma / voxel_size
     try:
