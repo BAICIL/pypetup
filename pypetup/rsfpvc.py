@@ -34,13 +34,13 @@ def rsfpvc(rsfmat, roimean, iters):
     return m
 '''
 
-def rsfpvc(rsfmat, roimean, iters=8):
+def rsfpvc(rsfmat, roimean, iters=10):
     """
     Performs the actual RSF PVC correction
     Args:
         rsfmat (numpy.ndarray): A numpy array of shape (n, n)
         roimean (numpy.ndarray): A numpy array of size n
-        iters (int, optional): Number of iterations to be performed. Default = 8.
+        iters (int, optional): Number of iterations to be performed. Default = 10.
     Returns:
          m (numpy.ndarray): Returns the RSF corrected mean values.
     """
@@ -58,7 +58,7 @@ def rsfpvc(rsfmat, roimean, iters=8):
 
     return m
 
-def apply_rsfpvc(pet_file, rsfmat_file=None, rsfmask=None, iters=8):
+def apply_rsfpvc(pet_file, rsfmat_file=None, rsfmask=None, iters=10):
     """
     Performs RSF PCV correction
 
@@ -66,7 +66,7 @@ def apply_rsfpvc(pet_file, rsfmat_file=None, rsfmask=None, iters=8):
         pet_file (str): Path to the PET file.
         rsfmat_file (str, optional): Path to the rsfmat file. Defaults to None.
         rsfmask (str, optional): Path to the RSF Label image. Defaults to None.
-        iters (int, optional): Number of iterations for computing RSF PVC. Defaults to 8.
+        iters (int, optional): Number of iterations for computing RSF PVC. Defaults to 10.
 
     Raises:
         IOError: Error loading rsfmat.txt file.
@@ -132,9 +132,9 @@ def main():
     parser.add_argument(
         "--iters",
         type=int,
-        default=8,
+        default=10,
         required=False,
-        help="Number of iterations. Default is 8.",
+        help="Number of iterations. Default is 10.",
     )
 
     args = parser.parse_args()
