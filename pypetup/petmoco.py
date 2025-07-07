@@ -65,7 +65,7 @@ def perform_motion_correction(input_4d_nifti, output_dir=None):
         print(
             f"Single volume detected. Created a copy of the input file as: {output_4d_nifti}"
         )
-        return output_4d_nifti
+        return output_4d_nifti + ".nii.gz"
 
     else:
 
